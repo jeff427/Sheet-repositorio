@@ -2,191 +2,169 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
-class VersionController extends Controller
+class Test2Controller extends Controller
 {
-    public function version()
+    /**
+     * Handle the incoming request.
+     */
+    public function generateData()
     {
         $faker = \Faker\Factory::create();
-        
+
         $initDate = Carbon::parse('2024-01-01');
-        $finishDate = Carbon::parse('2024-04-01');
-        $diffDate = $finishDate->diffInDays($initDate);
-        
+        $finishDate = Carbon::parse('2024-01-03');
+        $diffDays = $finishDate->diffInDays($initDate);
 
-        $jobProfileCodeDisponibles = DB::table('job_profile')->pluck('code');
-        $positionCodeDisponibles = DB::table('position')->pluck('code');
-        $areaCodeDisponible = DB::table('area')->pluck('code');
-        $workforcePlanCodeDisponible = DB::table('workforce_plan')->pluck('code');
-        $unitCodeDisponible = DB::table('unit')->pluck('code');
-        $teamCodeDisponible = DB::table('team')->pluck('code');          
-        $state_idDisponibles = DB::table('state')->pluck('id');
-        $manangerCodeDisponible = DB::table('collaborator')->pluck('code');
-        $approverCodeDisponible = DB::table('collaborator')->pluck('code');
-        $strategyCodeDisponible = DB::table('collaborator')->pluck('code');
-        $serviceCodeDisponible = DB::table('collaborator')->pluck('code');
-        $userCodeDisponible = DB::table('version_comment')->pluck('userCode');
-    
+        $stateIds = DB::table('state')->pluck('id');
+        $manangerCodes = DB::table('collaborator')->pluck('code');
+        $approverCodes = DB::table('collaborator')->pluck('code');
+        $strategyCodes = DB::table('collaborator')->pluck('code');
+        $serviceCodes = DB::table('collaborator')->pluck('code');
+        $userCodes = DB::table('version_comment')->pluck('userCode');
 
-        $CodeAleatorio = random_int(0, $jobProfileCodeDisponibles->count()-1);
-        $positionCodeAleatorio = random_int(0, $positionCodeDisponibles->count()-1);
-        $AreaCodeAleatorio = random_int(0, $areaCodeDisponible->count()-1);
-        $workforcePlanCodeAleatorio = random_int(0, $workforcePlanCodeDisponible->count()-1);
-        $unitCodeAleatorio = random_int(0, $unitCodeDisponible->count()-1);
-        $teamCodeAleatorio = random_int(0, $teamCodeDisponible->count()-1);
-        $stateIdAleatorio = random_int(0, $state_idDisponibles->count()-1);
-        $managerCodeAleatorio = random_int(0, $manangerCodeDisponible->count()-1);
-        $approverCodeAleatorio = random_int(0, $approverCodeDisponible->count()-1);
-        $strategyCodeAleatorio = random_int(0, $strategyCodeDisponible->count()-1);
-        $serviceCodeAleatorio = random_int(0, $serviceCodeDisponible->count()-1);
-        $userCodealeatorio = random_int(0, $userCodeDisponible->count()-1);
+        $sheets = DB::table('sheet')->get();
+        $versions = DB::table('version')->get();
 
-        $codeidVar = $jobProfileCodeDisponibles[$CodeAleatorio] . '-' . $positionCodeDisponibles[$positionCodeAleatorio];
-        $jobProfileCodeVar = $jobProfileCodeDisponibles[$CodeAleatorio];
-        $positionCodeVar = $positionCodeDisponibles[$positionCodeAleatorio];
-        $areaCodeVar = $areaCodeDisponible[$AreaCodeAleatorio];
-        $workforcePlanCodeVar = $workforcePlanCodeDisponible[$workforcePlanCodeAleatorio];
-        $unitCodeVar = $unitCodeDisponible[$unitCodeAleatorio];
-        $teamCodeVar = $teamCodeDisponible[$teamCodeAleatorio];
-        $uuidVar = $faker->uuid();
-        $emptyVar = $faker->boolean();
-        $isActiveVar = $faker->boolean();
-        $hasVersionInReviewVar = $faker->boolean();
-        $spreadSheetVar = $faker->url();
-        $StateIdVar = $state_idDisponibles[$stateIdAleatorio];
-        $managerCodeVar = $manangerCodeDisponible[$managerCodeAleatorio];
-        $approverCodeVar = $faker->optional(0.5, $approverCodeDisponible[$approverCodeAleatorio])->randomElement([$approverCodeDisponible[$approverCodeAleatorio], null ]);
-        $strategyCodeVar = $faker->optional(0.5, $strategyCodeDisponible[$strategyCodeAleatorio])->randomElement([$strategyCodeDisponible[$strategyCodeAleatorio], null ]);
-        $serviceCodeVar = $faker->optional(0.5, $serviceCodeDisponible[$serviceCodeAleatorio])->randomElement([$serviceCodeDisponible[$serviceCodeAleatorio], null ]);
-        $isAcceptedByManagerVar = $manangerCodeDisponible[$managerCodeAleatorio] !== null;
-        $isAcceptedByApproverVar = $approverCodeDisponible[$approverCodeAleatorio] !== null;
-        $isAcceptedByStrategyVar = $strategyCodeDisponible[$strategyCodeAleatorio] !== null;
-        $isAcceptedByServiceVar = $serviceCodeDisponible[$serviceCodeAleatorio] !== null;
-        $numberVar = $faker->numberBetween(1, 10);
-        $inReviewVar = $faker->boolean();
-        $isCurrentVar = $faker->boolean();
-        $requestTypeVar = $faker->randomElement(['Solicitado por Manager', 'Solicitado por Service']);
-        $massiveUpdateCodeVar = $faker->optional(0, null)->word();
-        $isMinorChangeVar = $faker->boolean();
-        $hasConflictVar = $faker->boolean();
-        $detailConflictVar = $faker->sentence();
-        $userCodeConflictVar = $faker->regexify('[A-Z]{2}\d{5}');
-        $commentOfRejectionVar = $faker->sentence();
-        $createdAtVar = $faker->dateTimeBetween($initDate, $finishDate)->format('Y-m-d H:i:s');
-        $publishedAtVar = rand(0, 100) < 30 ? $faker->dateTimeBetween($initDate, $finishDate)->format('Y-m-d H:i:s') : null;
-        $updatedAtVar = rand(0, 100) < 30 ? $faker->dateTimeBetween($initDate, $finishDate)->format('Y-m-d H:i:s') : null;
+        $sheetsModified = [];
+        for ($i = 0; $i < $diffDays; $i++) {
+            // Generará 5 versiones por día para 5 fichas distintas elegidas aleatoriamente
+            for ($j = 0; $j < 5; $j++) {
+                $randomSheet = $sheets->random();
 
-            //table Sheet
-            $Sheet_faker = [
-                'code' => $codeidVar,
-                'jobProfileCode' => $jobProfileCodeVar,
-                'positionCode' => $positionCodeVar,
-                'areaCode' => $areaCodeVar,
-                'workforcePlanCode' => $workforcePlanCodeVar,
-                'unitCode' => $unitCodeVar,
-                'teamCode' => $teamCodeVar,
-                'uuid' => $uuidVar,
-                'empty' => $emptyVar,
-                'isActive' => $isActiveVar,
-                'hasVersionInReview' => $hasVersionInReviewVar,
-                'spreadSheet' => $spreadSheetVar,
-                'createdAt' => $createdAtVar,
-                'updatedAt' => $updatedAtVar,
-                'deletedAt' => null
-            ];
-            $idsheetFaker = DB::table('sheet')->insertGetId($Sheet_faker);
-        
-            //table Sheet_history
-            $Sheet_History_faker = [
-                'sheetId' => $idsheetFaker,
-                'code' => $codeidVar,
-                'jobProfileCode' => $jobProfileCodeVar,
-                'positionCode' => $positionCodeVar,
-                'areaCode' => $areaCodeVar,
-                'workforcePlanCode' => $workforcePlanCodeVar,
-                'unitCode' => $unitCodeVar,
-                'teamCode' => $teamCodeVar,
-                'uuid' => $uuidVar,
-                'empty' => $emptyVar,
-                'isActive' => $isActiveVar,
-                'hasVersionInReview' => $hasVersionInReviewVar,
-                'spreadSheet' => $spreadSheetVar,
-                'createdAt' => $createdAtVar
-            ];
-            $idsheet_historyFaker = DB::table('sheet_history')->insertGetId($Sheet_History_faker);
+                // Creación de una nueva versión
+                $versionHasConflict = $faker->boolean();
+                $createdAt = $faker->dateTime(); // Utilizar la fecha de acuerdo a los dias transcurridos
+                $newVersion = [
+                    'sheetId' => $randomSheet->id,
+                    'stateId' => 2, // Estado: Nueva
+                    'managerCode' => $manangerCodes->random(),
+                    'approverCode' => $approverCodes->random(),
+                    'strategyCode' => $strategyCodes->random(),
+                    'serviceCode' => $serviceCodes->random(),
+                    'isAcceptedByManager' => 0,
+                    'isAcceptedByApprover' => 0,
+                    'isAcceptedByStrategy' => 0,
+                    'isAcceptedByService' => 0,
+                    'number' => $faker->randomNumber(2), // El calculo del numero de versión se debe hacer consecutivo a los números de versión previos
+                    'inReview' => 0,
+                    'isCurrent' => 0,
+                    'requestType' => $faker->randomElement(['Solicitado por Manager', 'Solicitado por Service', 'Actualización masiva']),
+                    'massiveUpdateCode' => null,
+                    'isMinorChange' => $faker->boolean(),
+                    'hasConflict' => $versionHasConflict,
+                    'detailConflict' => $versionHasConflict ? $faker->text() : null,
+                    'userCodeConflict' => $userCodes->random(), // Preguntar cómo se determina este campo
+                    'publishedAt' => null,
+                    'commentOfRejection' => null,
+                    'limitOfFunctions' => $faker->randomNumber(2),
+                    'createdAt' => $createdAt,
+                    'updatedAt' => $createdAt,
+                    'deletedAt' => null,
+                ];
+                $newVersionId = DB::table('version')->insertGetId($newVersion);
 
 
-            //Table version       
-            $version_faker = [
-                'sheetId' => $idsheetFaker,
-                'stateId' => $StateIdVar,
-                'managerCode' => $managerCodeVar,
-                'approverCode' => $approverCodeVar,
-                'strategyCode' =>  $strategyCodeVar,
-                'serviceCode' => $serviceCodeVar,
-                'isAcceptedByManager' => $isAcceptedByManagerVar,
-                'isAcceptedByApprover' => $isAcceptedByApproverVar,
-                'isAcceptedByStrategy' => $isAcceptedByStrategyVar,
-                'isAcceptedByService' => $isAcceptedByServiceVar,
-                'number' => $numberVar,
-                'inReview' => $inReviewVar,
-                'isCurrent' => $isCurrentVar,
-                'requestType' => $requestTypeVar,
-                'massiveUpdateCode' => $massiveUpdateCodeVar,
-                'isMinorChange' => $isMinorChangeVar,
-                'hasConflict' => $hasConflictVar,
-                'detailConflict' => $detailConflictVar,
-                'userCodeConflict' => $userCodeConflictVar,
-                'publishedAt' => $publishedAtVar,
-                'commentOfRejection' => $commentOfRejectionVar,
-                'limitOfFunctions' => 50,
-                'createdAt' => $createdAtVar,
-                'updatedAt' => $updatedAtVar,
-                'deletedAt' =>  null
-            ];
-            $versionIdVar = DB::table('version')->insertGetId($version_faker);
-        
-        //Table version history
-        $userCodeDisponible = DB::table('version_comment')->pluck('userCode');
-        $aleatorio8 = random_int(0, $userCodeDisponible->count()-1);
+                $sheetsModified[] = [
+                    'sheet' => $randomSheet,
+                    'version' => $newVersion,
+                ];
 
-            $product_faker = [
-                'versionId' => $versionIdVar,
-                'sheetHistoryId' => $idsheet_historyFaker,
-                'stateId' => $StateIdVar,
-                'managerCode' => $managerCodeVar,
-                'approverCode' => $approverCodeVar,
-                'strategyCode' => $strategyCodeVar,
-                'serviceCode' => $serviceCodeVar,
-                'isAcceptedByManager' => $isAcceptedByManagerVar,
-                'isAcceptedByApprover' => $isAcceptedByApproverVar,
-                'isAcceptedByStrategy' => $isAcceptedByStrategyVar,
-                'isAcceptedByService' => $isAcceptedByServiceVar,
-                'number' => $numberVar,
-                'inReview' => $inReviewVar,
-                'isCurrent' => $isCurrentVar,
-                'requestType' => $requestTypeVar,
-                'massiveUpdateCode' => $massiveUpdateCodeVar,
-                'isMinorChange' => $isMinorChangeVar,
-                'hasConflict' => $hasConflictVar,
-                'detailConflict' => $detailConflictVar,
-                'userCodeConflict' => $userCodeConflictVar,
-                'publishedAt' => $publishedAtVar,
-                'commentOfRejection' => $commentOfRejectionVar,
-                'limitOfFunctions' => 50,
-                'createdAt' => $createdAtVar,
-                'userCode' =>  $userCodeDisponible[$aleatorio8],
-                'description' => $faker->sentence(),
-                'passedMin' => $faker->numberBetween(1, 10)
-        
-            ];
-        
-            DB::table('version_history')->insert($product_faker);
-    
-        $vsheet = DB::table('version_history')->get();        
-        return response()->json(['message' => $vsheet], 200);
+                // Modificación y registro de la modificación de la ficha
+                DB::table('sheet')->update(['hasVersionInReview' => 1]);
+                $newSheetHistory = [
+                    'sheetId' => $randomSheet->id,
+                    'code' => $randomSheet->code,
+                    'jobProfileCode' => $randomSheet->jobProfileCode,
+                    'positionCode' => $randomSheet->positionCode,
+                    'areaCode' => $randomSheet->areaCode,
+                    'workforcePlanCode' => $randomSheet->workforcePlanCode,
+                    'unitCode' => $randomSheet->unitCode,
+                    'teamCode' => $randomSheet->teamCode,
+                    'uuid' => $randomSheet->uuid,
+                    'empty' => $randomSheet->empty,
+                    'isActive' => $randomSheet->isActive,
+                    'hasVersionInReview' => 1,
+                    'spreadSheet' => $randomSheet->spreadSheet,
+                    'createdAt' => $createdAt,
+                ];
+                $newSheetHistoryId = DB::table('sheet_history')->insertGetId($newSheetHistory);
+
+                // Modificación y registro de la modificación de la versión
+                $newVersionHistory = [
+                    'versionId' => $newVersionId,
+                    'sheetHistoryId' => $newSheetHistoryId,
+                    'stateId' => 2, // Estado: Nueva
+                    'managerCode' => $newVersion['managerCode'],
+                    'approverCode' => $newVersion['approverCode'],
+                    'strategyCode' => $newVersion['strategyCode'],
+                    'serviceCode' => $newVersion['serviceCode'],
+                    'isAcceptedByManager' => $newVersion['isAcceptedByManager'],
+                    'isAcceptedByApprover' => $newVersion['isAcceptedByApprover'],
+                    'isAcceptedByStrategy' => $newVersion['isAcceptedByStrategy'],
+                    'isAcceptedByService' => $newVersion['isAcceptedByService'],
+                    'number' => $newVersion['number'],
+                    'inReview' => $newVersion['inReview'],
+                    'isCurrent' => $newVersion['isCurrent'],
+                    'requestType' => $newVersion['requestType'],
+                    'massiveUpdateCode' => $newVersion['massiveUpdateCode'],
+                    'isMinorChange' => $newVersion['isMinorChange'],
+                    'hasConflict' => $newVersion['hasConflict'],
+                    'detailConflict' => $newVersion['detailConflict'],
+                    'userCodeConflict' => $newVersion['userCodeConflict'],
+                    'publishedAt' => $newVersion['publishedAt'],
+                    'commentOfRejection' => $newVersion['commentOfRejection'],
+                    'limitOfFunctions' => $newVersion['limitOfFunctions'],
+                    'createdAt' => $createdAt,
+                    'userCode' => $newVersion['serviceCode'], // Preguntar cómo se determina este campo
+                    'description' => $faker->text(), // Revisar en la bd los textos que se ponen aquí
+                    'passedMin' => $faker->randomNumber(2), // Llevar un conteo de esto para agregarlo a la tabla version_ans al final
+                ];
+                DB::table('version_history')->insert($newVersionHistory);
+
+                $randomStateId = $stateIds->random();
+                //$randomStateId = rand(3, 15);
+                // Modificamos la versión mientras aun no haya terminado su ciclo de vida
+
+                while ($randomStateId != 3 && $randomStateId != 15) {
+
+                    // Modiifcamos la versión de acuerdo al estado
+                    DB::table('version')->where('id', $newVersionId)->update(['stateId' => $randomStateId]);
+
+                    // Guardamos el historial de esa modificación
+                    $newVersionHistory['stateId'] = $randomStateId;
+                    // Agregar variaciones de los campos de acuerdo al estado
+                    DB::table('version_history')->insert($newVersionHistory);
+
+                    $randomStateId = $stateIds->random();
+                }
+
+                // Guardar el nuevo cambio de la ficha en sheetHistory
+                $newSheetHistory['hasVersionInReview'] = 0;
+                $newSheetHistory['empty'] = $randomStateId == 16 ? 0 : $newSheetHistory['empty'];
+                $newSheetHistoryId = DB::table('sheet_history')->insertGetId($newSheetHistory);
+
+                // Modiifcamos la versión de acuerdo a su último estado
+                DB::table('version')->where('id', $newVersionId)->update(['stateId' => $randomStateId]);
+
+                // Guardamos el historial de esa modificación vinculado al nuevo historial de la ficha
+                $newVersionHistory['sheetHistoryId'] = $newSheetHistoryId;
+                $newVersionHistory['stateId'] = $randomStateId;
+                // Agregar variaciones de los campos de acuerdo al estado
+                DB::table('version_history')->insert($newVersionHistory);
+            }
+        }
+
+        $response = [
+            'message' => 'Data generated successfully',
+            'sheetsModified' => $sheetsModified,
+        ];
+        return response()->json($response, 200);
     }
+
 }
+
+
